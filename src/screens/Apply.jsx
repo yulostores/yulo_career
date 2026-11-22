@@ -203,11 +203,11 @@ export default function Apply() {
   }
 
   // Razorpay for a saved application; on success, the confirmation page.
-  async function pay({ id, token, razorpayOrder, name, role }) {
+  async function pay({ id, token, razorpayOrder, name, role, phone }) {
     if (!razorpayOrder) {
       // Local development with simulated payments: no gateway to open.
       setSimulated(true);
-      setUnpaid({ id, token, name, role });
+      setUnpaid({ id, token, name, role, phone });
       setBusy(null);
       return;
     }
@@ -216,13 +216,14 @@ export default function Apply() {
       const response = await openRazorpayCheckout(razorpayOrder, {
         name: "Yulo Stores",
         description: `Job application fee — ${role}`,
+        prefill: { name, contact: phone },
       });
       setBusy("verifying");
       const application = await careersApi.verify(id, token, response);
       clearPending();
       navigate("/submitted", { state: { application } });
     } catch (err) {
-      setUnpaid({ id, token, name, role });
+      setUnpaid({ id, token, name, role, phone });
       if (err instanceof RazorpayCancelledError) {
         setFormError(
           err.failureReason
@@ -277,7 +278,15 @@ export default function Apply() {
     }
     const { application, accessToken, razorpayOrder } = created;
     savePending({ id: application.id, token: accessToken });
-    await pay({ id: application.id, token: accessToken, razorpayOrder, name: application.fullName, role: application.roleLabel });
+    await pay({
+      id: application.id,
+      token: accessToken,
+      razorpayOrder,
+      name: application.fullName,
+      role: application.roleLabel,
+      // The number typed on this form (the server's applicant view doesn't echo it back).
+      phone: tenDigits(form.phone),
+    });
   }
 
   async function payAgain() {

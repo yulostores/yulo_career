@@ -36,7 +36,9 @@ export class RazorpayCancelledError extends Error {
 // razorpayOrder is the { id, amount, currency, keyId } object POST .../bill/pay returns
 // (see payment.service.js's ensureRazorpayOrder). The key is the backend's public key id —
 // never configured in this app.
-export async function openRazorpayCheckout(razorpayOrder, { name, description } = {}) {
+// `prefill` is the applicant's own { name, contact } — without it Razorpay offers whatever number
+// it remembered in this browser from an earlier checkout.
+export async function openRazorpayCheckout(razorpayOrder, { name, description, prefill } = {}) {
   await loadRazorpayScript();
 
   return new Promise((resolve, reject) => {
@@ -48,6 +50,9 @@ export async function openRazorpayCheckout(razorpayOrder, { name, description } 
       currency: razorpayOrder.currency,
       name: name || "Yulo Stores",
       description,
+      ...(prefill?.contact || prefill?.name
+        ? { prefill: { ...(prefill.name ? { name: prefill.name } : {}), ...(prefill.contact ? { contact: `+91${prefill.contact}` } : {}) } }
+        : {}),
       handler: (response) => {
         resolve({
           razorpay_payment_id: response.razorpay_payment_id,
