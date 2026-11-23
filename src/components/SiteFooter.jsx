@@ -1,10 +1,12 @@
+import { Link } from "react-router-dom";
+
 import { BUSINESS } from "@/content/business";
 
+// This site's own policy pages (content/policies.js).
 const POLICIES = [
   { path: "/terms", label: "Terms & Conditions" },
   { path: "/privacy", label: "Privacy Policy" },
   { path: "/refund-policy", label: "Cancellation & Refund" },
-  { path: "/contact", label: "Contact Us" },
 ];
 
 export default function SiteFooter() {
@@ -13,13 +15,9 @@ export default function SiteFooter() {
       <div className="mx-auto max-w-3xl">
         <nav className="flex flex-wrap gap-x-4 gap-y-2">
           {POLICIES.map((p) => (
-            <a
-              key={p.path}
-              href={`${BUSINESS.website}${p.path}`}
-              className="font-semibold text-[#5a403e] hover:text-brand-orange"
-            >
+            <Link key={p.path} to={p.path} className="font-semibold text-[#5a403e] hover:text-brand-orange">
               {p.label}
-            </a>
+            </Link>
           ))}
         </nav>
         <p className="mt-4">
