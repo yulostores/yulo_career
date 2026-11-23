@@ -1,9 +1,10 @@
 // The careers application form. One page: personal details, position and role, salary, the
-// optional section (joining date, education, experience, PDF resume), then "Pay ₹100 & submit".
+// optional section (joining date, education, experience, PDF resume), then "Submit application".
 //
-// Submitting saves the application on the server first (unpaid), then opens Razorpay. If the
-// applicant closes the payment sheet, their details are already saved — the banner offers to pay
-// again without filling the form twice (POST /applications/:id/pay).
+// Submitting saves the application on the server (unpaid) and opens a "Confirm your registration"
+// popup: paying the ₹100 fee there (Razorpay) is what confirms it. "Pay later", or closing the
+// payment sheet, leaves the details saved — the banner reopens the popup to pay without filling
+// the form twice (POST /applications/:id/pay).
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -154,6 +155,10 @@ export default function Apply() {
   // The saved-but-unpaid application ({ id, token, name, role }) — payment was not completed.
   const [unpaid, setUnpaid] = useState(null);
   const [simulated, setSimulated] = useState(false);
+  // The "pay to confirm your registration" popup, and the Razorpay order made with the
+  // application (used once; a later attempt asks the server for a fresh one).
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [freshOrder, setFreshOrder] = useState(null);
   const fileRef = useRef(null);
 
   // A reload during payment: pick the saved application back up.
@@ -278,15 +283,37 @@ export default function Apply() {
     }
     const { application, accessToken, razorpayOrder } = created;
     savePending({ id: application.id, token: accessToken });
-    await pay({
+    // Saved — now the popup asks them to pay the fee to confirm the registration.
+    setUnpaid({
       id: application.id,
       token: accessToken,
-      razorpayOrder,
       name: application.fullName,
       role: application.roleLabel,
       // The number typed on this form (the server's applicant view doesn't echo it back).
       phone: tenDigits(form.phone),
     });
+    setSimulated(!razorpayOrder);
+    setFreshOrder(razorpayOrder ?? null);
+    setBusy(null);
+    setConfirmOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // "Pay ₹100" in the popup: the order made with the application if it is still unused, else a
+  // fresh one (payAgain). Local development without a gateway simulates it instead.
+  async function confirmAndPay() {
+    if (!unpaid || busy) return;
+    setFormError(null);
+    if (simulated) {
+      setConfirmOpen(false);
+      await simulate();
+      return;
+    }
+    const order = freshOrder;
+    setFreshOrder(null);
+    setConfirmOpen(false);
+    if (order) await pay({ ...unpaid, razorpayOrder: order });
+    else await payAgain();
   }
 
   async function payAgain() {
@@ -334,7 +361,7 @@ export default function Apply() {
         ? "Opening payment…"
         : busy === "verifying"
           ? "Confirming payment…"
-          : `Pay ${formatRupees(fee)} & submit`;
+          : "Submit application";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -380,7 +407,7 @@ export default function Apply() {
             <div className="flex items-start gap-3">
               <AlertCircle className="mt-0.5 h-6 w-6 shrink-0 text-brand-orange" aria-hidden />
               <div className="min-w-0">
-                <h2 className="text-lg font-bold">Payment not completed</h2>
+                <h2 className="text-lg font-bold">Registration not confirmed yet</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {unpaid.name ? `${unpaid.name}, your` : "Your"} application
                   {unpaid.role ? ` for ${unpaid.role}` : ""} is saved. It is sent to our hiring team once the{" "}
@@ -394,26 +421,15 @@ export default function Apply() {
               </p>
             ) : null}
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              {simulated ? (
-                <button
-                  type="button"
-                  onClick={simulate}
-                  disabled={!!busy}
-                  className="h-11 rounded-xl bg-brand-red px-5 text-sm font-semibold text-white disabled:opacity-60"
-                >
-                  {busy ? "Submitting…" : "Simulate payment (local only)"}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={payAgain}
-                  disabled={!!busy}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-red px-5 text-sm font-semibold text-white disabled:opacity-60"
-                >
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-                  {busy ? submitLabel : `Pay ${formatRupees(fee)}`}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(true)}
+                disabled={!!busy}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-red px-5 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+                {busy ? submitLabel : `Pay ${formatRupees(fee)} to confirm`}
+              </button>
               <button
                 type="button"
                 onClick={startOver}
@@ -711,7 +727,9 @@ export default function Apply() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-[#3d2c22]">Application form fee</p>
-                  <p className="text-xs text-muted-foreground">Paid once, securely through Razorpay.</p>
+                  <p className="text-xs text-muted-foreground">
+                    After you submit, pay it once through Razorpay to confirm your registration.
+                  </p>
                 </div>
                 <p className="text-2xl font-extrabold text-brand-red">{formatRupees(fee)}</p>
               </div>
@@ -737,7 +755,84 @@ export default function Apply() {
         )}
       </main>
 
+      {confirmOpen && unpaid ? (
+        <ConfirmPayDialog
+          name={unpaid.name}
+          role={unpaid.role}
+          fee={formatRupees(fee)}
+          simulated={simulated}
+          busy={!!busy}
+          onPay={confirmAndPay}
+          onLater={() => setConfirmOpen(false)}
+        />
+      ) : null}
+
       <SiteFooter />
+    </div>
+  );
+}
+
+// ── "Pay to confirm your registration" popup ───────────────────────────────────
+
+function ConfirmPayDialog({ name, role, fee, simulated, busy, onPay, onLater }) {
+  const payRef = useRef(null);
+  useEffect(() => {
+    payRef.current?.focus();
+    const onKey = (e) => {
+      if (e.key === "Escape" && !busy) onLater();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [busy, onLater]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center"
+      onClick={() => !busy && onLater()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-pay-title"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+      >
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-brand-orange" aria-hidden />
+          <div>
+            <h2 id="confirm-pay-title" className="text-lg font-bold">Confirm your registration</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {name ? `${name}, your` : "Your"} application{role ? ` for ${role}` : ""} is saved. Pay the {fee}{" "}
+              application fee to confirm your registration — it reaches our hiring team as soon as it&rsquo;s paid.
+            </p>
+          </div>
+        </div>
+        <div className="mt-5 flex items-center justify-between rounded-xl bg-[#fff6ef] px-4 py-3">
+          <span className="text-sm font-semibold text-[#3d2c22]">Application fee</span>
+          <span className="text-xl font-extrabold text-brand-red">{fee}</span>
+        </div>
+        <div className="mt-5 flex flex-col gap-2">
+          <button
+            ref={payRef}
+            type="button"
+            onClick={onPay}
+            disabled={busy}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand-gradient text-[15px] font-bold text-white disabled:opacity-70"
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <ShieldCheck className="h-4 w-4" aria-hidden />}
+            {simulated ? "Simulate payment (local only)" : `Pay ${fee} & confirm`}
+          </button>
+          <button
+            type="button"
+            onClick={onLater}
+            disabled={busy}
+            className="h-11 rounded-xl border border-[#e8d3c3] text-sm font-semibold text-[#5a403e] disabled:opacity-60"
+          >
+            Pay later
+          </button>
+        </div>
+        <p className="mt-3 text-center text-xs text-muted-foreground">Payments are secured by Razorpay.</p>
+      </div>
     </div>
   );
 }
