@@ -29,7 +29,10 @@ export default {
         "brand-gradient": "linear-gradient(90deg, #A4161A 0%, #D9480F 100%)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        // Hind for reading (it also sets Devanagari, so the Hindi lines match); Bricolage
+        // Grotesque for headlines and the role wall.
+        sans: ["Hind", "system-ui", "sans-serif"],
+        display: ['"Bricolage Grotesque"', "Hind", "system-ui", "sans-serif"],
       },
     },
   },

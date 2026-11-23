@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { careersApi } from "@/api/client";
+import { Faq, Hero, RoleWall, Steps } from "@/components/Landing";
 import SiteFooter from "@/components/SiteFooter";
 import { cn } from "@/lib/utils";
 import { ageFrom, today, yearsAgo } from "@/lib/dates";
@@ -354,6 +355,16 @@ export default function Apply() {
     setFormError(null);
   }
 
+  // A tile or role on the role wall: fill Position (and Role) and go to the form.
+  function pickJob(departmentKey, roleKey = "") {
+    setForm((f) => ({ ...f, department: departmentKey, role: roleKey }));
+    setErrors((e) => ({ ...e, department: undefined, role: undefined }));
+    requestAnimationFrame(() => {
+      document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" });
+      document.getElementById(roleKey ? "fullName" : "role")?.focus({ preventScroll: true });
+    });
+  }
+
   const submitLabel =
     busy === "saving"
       ? "Saving your details…"
@@ -365,27 +376,9 @@ export default function Apply() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="bg-brand-gradient text-white">
-        <div className="mx-auto max-w-3xl px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-12">
-          <p className="text-sm font-semibold uppercase tracking-wider text-white/80">Yulo Stores Careers</p>
-          <h1 className="mt-2 text-3xl font-extrabold leading-tight sm:text-4xl">Build what&rsquo;s next with us</h1>
-          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-white/90">
-            We&rsquo;re hiring across marketing, social media, design, sales, operations, technology, delivery,
-            restaurants and salons. Fill in the form below — it takes about five minutes.
-          </p>
-          {catalogue ? (
-            <ul className="mt-6 flex flex-wrap gap-2" aria-label="Departments hiring">
-              {catalogue.departments.map((d) => (
-                <li key={d.key} className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur">
-                  {d.label}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-      </header>
+      <Hero fee={formatRupees(fee)} onStart={() => document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" })} />
 
-      <main className="mx-auto -mt-6 w-full max-w-3xl flex-1 px-4 pb-12 sm:px-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16 pt-10 sm:px-6">
         {positions.isError ? (
           <div className="rounded-2xl border border-brand-cream bg-white p-6 text-center shadow-sm">
             <p className="font-semibold">We couldn&rsquo;t load the application form.</p>
@@ -441,7 +434,20 @@ export default function Apply() {
             </div>
           </div>
         ) : (
-          <form onSubmit={submit} noValidate className="flex flex-col gap-5">
+          <>
+          <RoleWall departments={catalogue.departments} selected={form.department} onPick={pickJob} />
+          <div className="mt-12">
+            <Steps fee={formatRupees(fee)} />
+          </div>
+          <h2 id="apply" className="mt-12 scroll-mt-4 font-display text-3xl font-extrabold tracking-tight text-brand-dark sm:text-4xl">
+            Your application
+          </h2>
+          <p className="mb-5 mt-2 text-[17px] text-[#6b5747]">
+            {department
+              ? `Applying for ${form.role ? department.roles.find((r) => r.key === form.role)?.label ?? department.label : department.label}. Fill in the rest below.`
+              : "Fill in your details — fields marked * are needed."}
+          </p>
+          <form onSubmit={submit} noValidate className="flex max-w-3xl flex-col gap-5">
             <Section icon={UserRound} title="Personal details">
               <Field id="fullName" label="Full name" required error={errors.fullName} className="sm:col-span-2">
                 <input
@@ -752,6 +758,10 @@ export default function Apply() {
               </p>
             </section>
           </form>
+          <div className="max-w-3xl">
+            <Faq fee={formatRupees(fee)} />
+          </div>
+          </>
         )}
       </main>
 
