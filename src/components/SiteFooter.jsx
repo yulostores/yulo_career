@@ -29,7 +29,7 @@ export default function SiteFooter() {
           </a>
         </p>
         <p className="mt-2">
-          © {new Date().getFullYear()} {BUSINESS.legalName} · Payments secured by Razorpay
+          © {new Date().getFullYear()} {BUSINESS.legalName}
         </p>
       </div>
     </footer>

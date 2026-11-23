@@ -376,7 +376,7 @@ export default function Apply() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Hero fee={formatRupees(fee)} onStart={() => document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" })} />
+      <Hero onStart={() => document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" })} />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16 pt-10 sm:px-6">
         {positions.isError ? (
@@ -437,7 +437,7 @@ export default function Apply() {
           <>
           <RoleWall departments={catalogue.departments} selected={form.department} onPick={pickJob} />
           <div className="mt-12">
-            <Steps fee={formatRupees(fee)} />
+            <Steps />
           </div>
           <h2 id="apply" className="mt-12 scroll-mt-4 font-display text-3xl font-extrabold tracking-tight text-brand-dark sm:text-4xl">
             Your application
@@ -730,24 +730,15 @@ export default function Apply() {
             </Section>
 
             <section className="rounded-2xl border border-brand-cream bg-white p-4 shadow-sm sm:p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-[#3d2c22]">Application form fee</p>
-                  <p className="text-xs text-muted-foreground">
-                    After you submit, pay it once through Razorpay to confirm your registration.
-                  </p>
-                </div>
-                <p className="text-2xl font-extrabold text-brand-red">{formatRupees(fee)}</p>
-              </div>
               {formError ? (
-                <p role="alert" className="mt-4 rounded-xl bg-[#fdecec] px-3 py-2 text-sm text-brand-maroon">
+                <p role="alert" className="mb-4 rounded-xl bg-[#fdecec] px-3 py-2 text-sm text-brand-maroon">
                   {formError}
                 </p>
               ) : null}
               <button
                 type="submit"
                 disabled={!!busy}
-                className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient text-[15px] font-bold text-white shadow-sm transition hover:opacity-95 disabled:opacity-70"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient text-[15px] font-bold text-white shadow-sm transition hover:opacity-95 disabled:opacity-70"
               >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CheckCircle2 className="h-4 w-4" aria-hidden />}
                 {submitLabel}
@@ -759,7 +750,7 @@ export default function Apply() {
             </section>
           </form>
           <div className="max-w-3xl">
-            <Faq fee={formatRupees(fee)} />
+            <Faq />
           </div>
           </>
         )}

@@ -63,7 +63,7 @@ const ROLE_PILL = {
   "bg-brand-dark text-white": "bg-white/10 text-white hover:bg-white/20",
 };
 
-export function Hero({ onStart, fee }) {
+export function Hero({ onStart }) {
   return (
     <header className="relative overflow-hidden bg-brand-red text-white">
       {/* The brand's diagonal, cut across the block — the one decorative move on the page. */}
@@ -94,7 +94,7 @@ export function Hero({ onStart, fee }) {
           >
             Choose your job
           </button>
-          <span className="text-sm text-white/85">Takes about 5 minutes · {fee} application fee</span>
+          <span className="text-sm text-white/85">Takes about 5 minutes</span>
         </div>
       </div>
     </header>
@@ -171,12 +171,12 @@ export function RoleWall({ departments, selected, onPick }) {
   );
 }
 
-// A real sequence, so it is numbered.
-export function Steps({ fee }) {
+// A real sequence, so it is numbered. (The form fee is only shown after submitting.)
+export function Steps() {
   const steps = [
-    { title: "Fill the form", body: "Your details, the job you want and your expected salary. A résumé is optional." },
-    { title: `Pay ${fee} to confirm`, body: "One payment through Razorpay confirms your registration." },
-    { title: "We call you", body: "Our hiring team reviews every confirmed application and calls if it’s a fit." },
+    { title: "Pick your job", body: "Tap your team or the exact role above — we fill it in for you." },
+    { title: "Fill the form", body: "Your details and expected salary. A résumé is optional." },
+    { title: "We call you", body: "Our hiring team reviews every application and calls if it’s a fit." },
   ];
   return (
     <ol className="grid gap-6 border-y border-[#f0dccb] py-8 sm:grid-cols-3">
@@ -193,7 +193,7 @@ export function Steps({ fee }) {
   );
 }
 
-export function Faq({ fee, minAge = 16, maxAge = 70 }) {
+export function Faq({ minAge = 16, maxAge = 70 }) {
   const items = [
     {
       q: "Who can apply?",
@@ -201,12 +201,8 @@ export function Faq({ fee, minAge = 16, maxAge = 70 }) {
     },
     { q: "Do I need a résumé?", a: "No. You can attach one as a PDF if you have it, up to 5 MB." },
     {
-      q: `Why is there a ${fee} fee?`,
-      a: "It confirms your registration, so our hiring team spends its time on people who really want the job.",
-    },
-    {
-      q: "What happens if I don’t pay right away?",
-      a: "Your application is saved, but it reaches the hiring team only once the fee is paid. In the same browser tab, tap “Pay to confirm” — you won’t fill the form again.",
+      q: "What do I need to apply?",
+      a: "Your mobile number, date of birth, city, the job you want and your expected monthly salary. Everything else is optional.",
     },
   ];
   return (
