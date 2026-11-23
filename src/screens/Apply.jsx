@@ -380,7 +380,7 @@ export default function Apply() {
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16 pt-10 sm:px-6">
         {positions.isError ? (
-          <div className="rounded-2xl border border-brand-cream bg-white p-6 text-center shadow-sm">
+          <div className="mx-auto max-w-3xl rounded-2xl border border-brand-cream bg-white p-6 text-center shadow-sm">
             <p className="font-semibold">We couldn&rsquo;t load the application form.</p>
             <p className="mt-1 text-sm text-muted-foreground">{positions.error.message}</p>
             <button
@@ -396,7 +396,7 @@ export default function Apply() {
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Loading the application form…
           </div>
         ) : unpaid ? (
-          <div className="rounded-2xl border border-brand-cream bg-white p-6 shadow-sm">
+          <div className="mx-auto max-w-3xl rounded-2xl border border-brand-cream bg-white p-6 shadow-sm">
             <div className="flex items-start gap-3">
               <AlertCircle className="mt-0.5 h-6 w-6 shrink-0 text-brand-orange" aria-hidden />
               <div className="min-w-0">
@@ -439,6 +439,8 @@ export default function Apply() {
           <div className="mt-12">
             <Steps />
           </div>
+          {/* The form column: centred under the full-width role wall. */}
+          <div className="mx-auto max-w-3xl">
           <h2 id="apply" className="mt-12 scroll-mt-4 font-display text-3xl font-extrabold tracking-tight text-brand-dark sm:text-4xl">
             Your application
           </h2>
@@ -447,7 +449,7 @@ export default function Apply() {
               ? `Applying for ${form.role ? department.roles.find((r) => r.key === form.role)?.label ?? department.label : department.label}. Fill in the rest below.`
               : "Fill in your details — fields marked * are needed."}
           </p>
-          <form onSubmit={submit} noValidate className="flex max-w-3xl flex-col gap-5">
+          <form onSubmit={submit} noValidate className="flex flex-col gap-5">
             <Section icon={UserRound} title="Personal details">
               <Field id="fullName" label="Full name" required error={errors.fullName} className="sm:col-span-2">
                 <input
@@ -749,8 +751,7 @@ export default function Apply() {
               </p>
             </section>
           </form>
-          <div className="max-w-3xl">
-            <Faq />
+          <Faq />
           </div>
           </>
         )}
