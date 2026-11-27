@@ -32,6 +32,9 @@ import { openRazorpayCheckout, RazorpayCancelledError } from "@/lib/razorpay";
 
 const RESUME_MAX_MB = 5;
 
+// Most roles one application may name (server: MAX_ROLES_PER_APPLICATION).
+const MAX_ROLES = 3;
+
 const EMPTY = {
   fullName: "",
   phone: "",
@@ -40,7 +43,8 @@ const EMPTY = {
   gender: "",
   city: "",
   department: "",
-  role: "",
+  // Up to MAX_ROLES roles, all in the chosen position.
+  roles: [],
   expectedSalaryMin: "",
   expectedSalaryMax: "",
   currentSalary: "",
@@ -84,7 +88,7 @@ function validate(form, catalogue) {
   if (!form.gender) e.gender = "Select your gender";
   if (form.city.trim().length < 2) e.city = "Enter your city";
   if (!form.department) e.department = "Select a position";
-  if (!form.role) e.role = "Select a role";
+  if (!form.roles?.length) e.role = "Select at least one role";
   const min = Number(form.expectedSalaryMin);
   const max = Number(form.expectedSalaryMax);
   if (form.expectedSalaryMin === "") e.expectedSalaryMin = "Enter the minimum";
@@ -188,7 +192,7 @@ export default function Apply() {
 
   const set = (key) => (e) => {
     const value = e.target.value;
-    setForm((f) => ({ ...f, [key]: value, ...(key === "department" ? { role: "" } : null) }));
+    setForm((f) => ({ ...f, [key]: value, ...(key === "department" ? { roles: [] } : null) }));
     if (errors[key]) setErrors((x) => ({ ...x, [key]: undefined }));
   };
 
@@ -261,9 +265,12 @@ export default function Apply() {
 
     const body = new FormData();
     for (const [key, value] of Object.entries(form)) {
+      if (key === "roles") continue;
       const v = typeof value === "string" ? value.trim() : value;
       if (v !== "") body.append(key, v);
     }
+    // Several roles go as one comma-separated field (the server splits it).
+    body.append("roles", form.roles.join(","));
     if (resume) body.append("resume", resume, resume.name);
 
     setBusy("saving");
@@ -357,7 +364,7 @@ export default function Apply() {
 
   // A tile or role on the role wall: fill Position (and Role) and go to the form.
   function pickJob(departmentKey, roleKey = "") {
-    setForm((f) => ({ ...f, department: departmentKey, role: roleKey }));
+    setForm((f) => ({ ...f, department: departmentKey, roles: roleKey ? [roleKey] : [] }));
     setErrors((e) => ({ ...e, department: undefined, role: undefined }));
     requestAnimationFrame(() => {
       document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" });
@@ -446,7 +453,11 @@ export default function Apply() {
           </h2>
           <p className="mb-5 mt-2 text-[17px] text-[#6b5747]">
             {department
-              ? `Applying for ${form.role ? department.roles.find((r) => r.key === form.role)?.label ?? department.label : department.label}. Fill in the rest below.`
+              ? `Applying for ${
+                  form.roles.length
+                    ? form.roles.map((k) => department.roles.find((r) => r.key === k)?.label ?? k).join(", ")
+                    : department.label
+                }. Fill in the rest below.`
               : "Fill in your details — fields marked * are needed."}
           </p>
           <form onSubmit={submit} noValidate className="flex flex-col gap-5">
@@ -570,22 +581,52 @@ export default function Apply() {
                   ))}
                 </select>
               </Field>
-              <Field id="role" label="Role" required error={errors.role}>
-                <select
-                  id="role"
-                  value={form.role}
-                  onChange={set("role")}
-                  disabled={!department}
-                  className={inputClass(errors.role)}
-                  aria-invalid={!!errors.role}
-                >
-                  <option value="">{department ? "Select a role" : "Select a position first"}</option>
-                  {department?.roles.map((r) => (
-                    <option key={r.key} value={r.key}>
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
+              <Field
+                id="role"
+                label={`Role — up to ${MAX_ROLES}`}
+                required
+                error={errors.role}
+                className="sm:col-span-2"
+              >
+                {department ? (
+                  <div className="flex flex-wrap gap-2" role="group" aria-label="Roles">
+                    {department.roles.map((r, i) => {
+                      const on = form.roles.includes(r.key);
+                      const full = !on && form.roles.length >= MAX_ROLES;
+                      return (
+                        <button
+                          key={r.key}
+                          id={i === 0 ? "role" : undefined}
+                          type="button"
+                          aria-pressed={on}
+                          disabled={full}
+                          onClick={() => {
+                            setForm((f) => ({
+                              ...f,
+                              roles: on ? f.roles.filter((k) => k !== r.key) : [...f.roles, r.key],
+                            }));
+                            setErrors((e) => ({ ...e, role: undefined }));
+                          }}
+                          className={
+                            on
+                              ? "rounded-full border-2 border-brand-red bg-brand-red px-3.5 py-1.5 text-sm font-semibold text-white"
+                              : "rounded-full border border-[#e4d3c4] bg-white px-3.5 py-1.5 text-sm font-semibold text-brand-dark hover:border-brand-red disabled:opacity-40"
+                          }
+                        >
+                          {on ? "✓ " : ""}
+                          {r.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p id="role" tabIndex={-1} className="text-sm text-[#6b5747]">Select a position first.</p>
+                )}
+                {department ? (
+                  <p className="mt-2 text-xs text-[#6b5747]">
+                    Pick the role you want — or up to {MAX_ROLES} if more than one suits you. One application, one fee.
+                  </p>
+                ) : null}
               </Field>
             </Section>
 

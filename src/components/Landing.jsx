@@ -43,7 +43,7 @@ const BLURBS = {
   operations: "Talk to customers and partners on call and chat.",
   other: "No experience yet? Freshers and students can apply.",
   developer: "Build the apps our customers, partners and riders use.",
-  designing: "Posters, reels, edits and app screens.",
+  designing: "Canva designs, videos, edits and written content.",
   social_media: "Run our pages, shoot content, grow the audience.",
   marketing: "Campaigns and relationships that bring people to Yulo.",
   business_development: "Open new cities and partnerships.",
