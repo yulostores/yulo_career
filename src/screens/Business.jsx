@@ -417,10 +417,6 @@ export default function Business() {
             </Section>
 
             <section className="rounded-2xl border border-brand-cream bg-white p-4 shadow-sm sm:p-6">
-              <div className="mb-4 flex items-center justify-between rounded-xl bg-[#fff6ef] px-4 py-3">
-                <span className="text-sm font-semibold text-[#3d2c22]">Form fee</span>
-                <span className="text-lg font-extrabold text-brand-red">{formatRupees(fee)}</span>
-              </div>
               {formError ? (
                 <p role="alert" className="mb-4 rounded-xl bg-[#fdecec] px-3 py-2 text-sm text-brand-maroon">
                   {formError}
