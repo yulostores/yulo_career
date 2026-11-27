@@ -5,15 +5,21 @@ import { Link, useLocation } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
 
 import SiteFooter from "@/components/SiteFooter";
+import { BusinessSubmitted } from "@/screens/Business";
 
 export default function Submitted() {
   const application = useLocation().state?.application ?? null;
+  const isBusiness = Boolean(application?.businessName);
 
   return (
     <div className="flex min-h-screen flex-col">
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-4 py-12 text-center">
         {application ? (
           <>
+            {isBusiness ? (
+              <BusinessSubmitted application={application} />
+            ) : (
+              <>
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#e7f4e8]">
               <CheckCircle2 className="h-9 w-9 text-brand-green" aria-hidden />
             </span>
@@ -24,6 +30,8 @@ export default function Submitted() {
               {application.departmentLabel}) has reached our hiring team. We&rsquo;ll call you if your profile is a
               good fit.
             </p>
+              </>
+            )}
             {application.applicationNumber ? (
               <div className="mt-6 w-full rounded-2xl border border-brand-cream bg-white p-5 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Application number</p>
@@ -38,7 +46,7 @@ export default function Submitted() {
               to="/"
               className="mt-6 text-sm font-semibold text-brand-orange hover:text-brand-red"
             >
-              Apply for another role
+              {isBusiness ? "Back to Yulo Stores careers" : "Apply for another role"}
             </Link>
           </>
         ) : (

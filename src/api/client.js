@@ -37,3 +37,15 @@ export const careersApi = {
   simulate: (id, token) =>
     client.post(`/applications/${id}/simulate-payment`, null, withToken(token)).then((r) => r.data.data.application),
 };
+
+// "Choose your business": a shop applying to become a Yulo coupon partner (₹100 form fee).
+export const businessApi = {
+  form: () => client.get("/partner-form").then((r) => r.data.data),
+  apply: (body) => client.post("/partner-applications", body).then((r) => r.data.data),
+  get: (id, token) => client.get(`/partner-applications/${id}`, withToken(token)).then((r) => r.data.data.application),
+  pay: (id, token) => client.post(`/partner-applications/${id}/pay`, null, withToken(token)).then((r) => r.data.data),
+  verify: (id, token, body) =>
+    client.post(`/partner-applications/${id}/verify`, body, withToken(token)).then((r) => r.data.data.application),
+  simulate: (id, token) =>
+    client.post(`/partner-applications/${id}/simulate-payment`, null, withToken(token)).then((r) => r.data.data.application),
+};

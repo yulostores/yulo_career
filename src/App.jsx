@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import Apply from "./screens/Apply";
 import Submitted from "./screens/Submitted";
+import Business from "./screens/Business";
 import Policy from "./screens/Policy";
 
 export default function App() {
@@ -9,6 +10,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Apply />} />
       <Route path="/submitted" element={<Submitted />} />
+      <Route path="/business" element={<Business />} />
+      <Route path="/business/submitted" element={<Submitted />} />
       <Route path="/terms" element={<Policy which="terms" />} />
       <Route path="/privacy" element={<Policy which="privacy" />} />
       <Route path="/refund-policy" element={<Policy which="refund" />} />

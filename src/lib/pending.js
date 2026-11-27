@@ -4,26 +4,29 @@
 
 const KEY = "yulo-careers:pending";
 
-export function savePending(value) {
+// `which` picks the form: the job application (default) or "business".
+const keyOf = (which) => (which === "business" ? "yulo-careers:pending-business" : KEY);
+
+export function savePending(value, which) {
   try {
-    sessionStorage.setItem(KEY, JSON.stringify(value));
+    sessionStorage.setItem(keyOf(which), JSON.stringify(value));
   } catch {
     /* storage unavailable — the in-memory copy still works for this page */
   }
 }
 
-export function readPending() {
+export function readPending(which) {
   try {
-    const value = JSON.parse(sessionStorage.getItem(KEY) ?? "null");
+    const value = JSON.parse(sessionStorage.getItem(keyOf(which)) ?? "null");
     return value?.id && value?.token ? value : null;
   } catch {
     return null;
   }
 }
 
-export function clearPending() {
+export function clearPending(which) {
   try {
-    sessionStorage.removeItem(KEY);
+    sessionStorage.removeItem(keyOf(which));
   } catch {
     /* nothing to clear */
   }

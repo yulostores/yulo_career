@@ -17,6 +17,8 @@ import {
   Smartphone,
 } from "lucide-react";
 
+import { Link } from "react-router-dom";
+
 import { cn } from "@/lib/utils";
 
 const ICONS = {
@@ -94,7 +96,13 @@ export function Hero({ onStart }) {
           >
             Choose your job
           </button>
-          <span className="text-sm text-white/85">Takes about 5 minutes</span>
+          <Link
+            to="/business"
+            className="inline-flex h-12 items-center rounded-full border-2 border-white/80 px-7 font-display text-base font-bold text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-white/50"
+          >
+            Choose your business
+          </Link>
+          <span className="w-full text-sm text-white/85 sm:w-auto">Takes about 5 minutes</span>
         </div>
       </div>
     </header>
