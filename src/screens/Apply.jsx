@@ -534,14 +534,13 @@ export default function Apply() {
                 className="sm:col-span-2"
               >
                 {department ? (
-                  <div className="flex flex-wrap gap-2" role="group" aria-label="Roles">
-                    {department.roles.map((r, i) => {
+                  <div id="role" tabIndex={-1} className="flex flex-wrap gap-2 outline-none" role="group" aria-label="Roles">
+                    {department.roles.map((r) => {
                       const on = form.roles.includes(r.key);
                       const full = !on && form.roles.length >= MAX_ROLES;
                       return (
                         <button
                           key={r.key}
-                          id={i === 0 ? "role" : undefined}
                           type="button"
                           aria-pressed={on}
                           disabled={full}
